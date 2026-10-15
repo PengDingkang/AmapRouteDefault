@@ -1,3 +1,16 @@
 <resources>
+    <string name="app_name">高德默认路线</string>
     <string name="module_description">设置高德地图默认出行方式</string>
+    <string name="route_mode_original">跟随高德原有行为</string>
+    <string name="route_mode_bus">公共交通</string>
+    <string name="route_mode_walk">步行</string>
+    <string name="route_mode_cycle">骑行</string>
+    <string name="route_mode_car">驾车</string>
+    <string name="settings_description">默认出行方式\n\n打开普通路线规划时优先使用此方式，进入路线页后仍可手动切换。\n</string>
+    <string name="settings_help">首次使用：在 LSPosed 中启用本模块，作用域勾选高德地图，然后结束高德进程并重新打开。\n\n使用 DexKit 自动定位路线入口，尝试兼容不同高德版本；无法确认时保留高德原有行为。已实测：15.10.1.2063。</string>
+    <string name="preference_saved">已保存，下次打开路线规划时生效</string>
+    <string name="preference_save_failed">保存失败，请检查模块是否已启用</string>
+    <string name="status_ready">模块已启用 · 高德地图已加入作用域</string>
+    <string name="status_missing_scope">模块已启用 · 请在 LSPosed 作用域中勾选高德地图</string>
+    <string name="status_disconnected">请先在支持 API 102 的 LSPosed 中启用模块，再重新打开本页。</string>
 </resources>

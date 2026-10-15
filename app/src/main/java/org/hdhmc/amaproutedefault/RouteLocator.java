@@ -1,5 +1,6 @@
 package org.hdhmc.amaproutedefault;
 
+import android.annotation.SuppressLint;
 import android.content.pm.ApplicationInfo;
 import android.util.AtomicFile;
 import java.io.File;
@@ -29,6 +30,9 @@ import org.luckypray.dexkit.wrap.DexMethod;
 final class RouteLocator {
     private static final String RULE_REVISION = "route-init-v3-dexkit-2.3";
 
+    // Cache hits skip scanning. On a miss, each APK gets one bridge reused for all queries,
+    // then closed to release its native resources instead of retaining it in the host process.
+    @SuppressLint("DuplicateCreateDexKit")
     static RouteAdapter locate(ApplicationInfo info, ClassLoader loader, Consumer<String> log)
             throws ReflectiveOperationException, IOException {
         List<String> paths = new ArrayList<>();

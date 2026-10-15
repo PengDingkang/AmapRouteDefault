@@ -15,7 +15,8 @@ public final class SettingsActivity extends Activity {
     static final String GROUP = "route_defaults";
     static final String KEY = "mode";
     static final String[] MODES = {"OFF", "BUS", "ONFOOT", "RIDE", "CAR"};
-    private static final String[] LABELS = {"跟随高德原有行为", "公共交通", "步行", "骑行", "驾车"};
+    private static final int[] LABELS = {R.string.route_mode_original, R.string.route_mode_bus,
+            R.string.route_mode_walk, R.string.route_mode_cycle, R.string.route_mode_car};
     private TextView status;
     private RadioGroup choices;
     private boolean updating;
@@ -27,14 +28,14 @@ public final class SettingsActivity extends Activity {
         int pad = (int) (24 * getResources().getDisplayMetrics().density);
         root.setPadding(pad, pad * 2, pad, pad);
         TextView title = new TextView(this);
-        title.setText("高德默认路线");
+        title.setText(R.string.app_name);
         title.setTextSize(26);
         root.addView(title);
         status = new TextView(this);
         status.setPadding(0, pad, 0, pad);
         root.addView(status);
         TextView description = new TextView(this);
-        description.setText("默认出行方式\n\n打开普通路线规划时优先使用此方式，进入路线页后仍可手动切换。\n");
+        description.setText(R.string.settings_description);
         description.setTextSize(16);
         root.addView(description);
         choices = new RadioGroup(this);
@@ -52,17 +53,17 @@ public final class SettingsActivity extends Activity {
             if (service == null || index < 0 || index >= MODES.length) return;
             try {
                 boolean saved = service.getRemotePreferences(GROUP).edit().putString(KEY, MODES[index]).commit();
-                if (!saved) throw new IllegalStateException("保存失败");
-                Toast.makeText(this, "已保存，下次打开路线规划时生效", Toast.LENGTH_SHORT).show();
+                if (!saved) throw new IllegalStateException("Remote preferences commit failed");
+                Toast.makeText(this, R.string.preference_saved, Toast.LENGTH_SHORT).show();
             } catch (RuntimeException e) {
-                Toast.makeText(this, "保存失败，请检查模块是否已启用", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.preference_save_failed, Toast.LENGTH_LONG).show();
                 refresh();
             }
         });
         root.addView(choices);
         TextView help = new TextView(this);
         help.setPadding(0, pad, 0, 0);
-        help.setText("首次使用：在 LSPosed 中启用本模块，作用域勾选高德地图，然后结束高德进程并重新打开。\n\n使用 DexKit 自动定位路线入口，尝试兼容不同高德版本；无法确认时保留高德原有行为。已实测：15.10.1.2063。");
+        help.setText(R.string.settings_help);
         root.addView(help);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -96,11 +97,11 @@ public final class SettingsActivity extends Activity {
                 SharedPreferences prefs = service.getRemotePreferences(GROUP);
                 mode = prefs.getString(KEY, "OFF");
                 status.setText(service.getScope().contains("com.autonavi.minimap")
-                        ? "模块已启用 · 高德地图已加入作用域"
-                        : "模块已启用 · 请在 LSPosed 作用域中勾选高德地图");
+                        ? R.string.status_ready
+                        : R.string.status_missing_scope);
             }
         } catch (RuntimeException e) { connected = false; }
-        if (!connected) status.setText("请先在支持 API 102 的 LSPosed 中启用模块，再重新打开本页。");
+        if (!connected) status.setText(R.string.status_disconnected);
         updating = true;
         int selected = 0;
         for (int i = 0; i < MODES.length; i++) if (MODES[i].equals(mode)) selected = i;

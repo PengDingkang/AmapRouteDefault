@@ -24,7 +24,11 @@ android {
         targetSdk = 36
         versionCode = providers.gradleProperty("appVersionCode").get().toInt()
         versionName = providers.gradleProperty("appVersionName").get()
-        ndk { abiFilters += "arm64-v8a" }
+        ndk {
+            // This module deliberately supports arm64 devices only, including DexKit JNI.
+            //noinspection ChromeOsAbiSupport
+            abiFilters += "arm64-v8a"
+        }
     }
     signingConfigs {
         if (hasReleaseSigning) {

@@ -23,6 +23,8 @@ The preference applies when opening ordinary route planning without an explicit 
 
 The settings screen follows the system's light/dark mode and uses system dynamic colors for its background and radio buttons.
 
+The module app excludes its own local data from cloud backups and device transfers. Travel preferences and scope are managed by LSPosed, whose migration behavior is controlled by the framework.
+
 ## Adapting an incompatible version
 
 Fork this project and use an AI Agent to adapt it to **your own device and installed APK**. Ask the agent to read [AGENTS.md](AGENTS.md), inspect your actual Amap installation and relevant logs, update the matching rules, and verify the resulting APK on your authorized device. The Chinese README includes a prompt template. Share only sanitized evidence; do not upload Amap APKs or personal location history.

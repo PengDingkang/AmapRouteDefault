@@ -88,3 +88,19 @@
 - Debug 和 unsigned Release 均通过 APK 元数据、ABI、Xposed 入口及对应签名状态校验；12 项发布工具测试、ShellCheck、actionlint 和 `git diff --check` 通过。
 - `--warning-mode all` 确认现有 AGP 9.1.1 内部仍使用两个已弃用的 Gradle API；这是后续 Gradle 10/11 的迁移事项，本次不屏蔽这些日志。当前 Gradle 9.8.1 构建正常。
 - 本次仅调整构建环境，应用版本保持 0.2.3 / 5，未重新安装模块或改变设备设置。
+
+
+## 0.2.4 备份规则与报告整理
+
+2026-10-16，沿用 Android 16、高德 15.10.1.2063 和 LSPosed IT 2.1.1-it (7847) 实机环境。
+
+- 根据 CI 运行 `38771298566` 的实际报告，Debug 为 0 错误、4 警告，Release 为 0 错误、5 警告；Release 额外包含 DexKit 的重复创建 Bridge 提醒。该远端结果与此前本地记录的 4 警告不同。
+- 补充 `dataExtractionRules`，分别在云端备份及设备迁移中排除全部 9 个本地数据域（含设备加密存储和外部文件）。保留 `allowBackup=false`；仅约束模块应用自身数据，LSPosed 共享设置仍由框架管理。
+- 设置页文字、选项、Toast、服务状态和应用名称迁移到字符串资源；核对多行文案与原 Java 字面量一致，选项顺序及持久化的模式标识保持一致。
+- 为仅支持 arm64 的 Gradle 声明添加局部 `ChromeOsAbiSupport` 抑制；为缓存未命中时按 APK 复用并关闭 Bridge 的方法添加 `DuplicateCreateDexKit` 抑制及原因说明。未改变扫描逻辑、缓存规则、路线 Hook 或 JNI 配置。
+- `assembleDebug assembleRelease testDebugUnitTest lintDebug lintRelease` 通过，7 个 Java 测试通过。两种构建的本地 Lint 均为 0 错误、1 警告，仅保留 `OldTargetApi`：目标 SDK 36，升级到 37 前需要 Android 17 行为回归。
+- Debug 与签名 Release 通过 APK 校验；Release 为 516,699 字节，使用原有正式证书。检查最终 APK 的 Manifest 及二进制 XML，确认 `allowBackup=false` 和两类传输的 18 条排除规则均被保留。
+- 已覆盖安装 0.2.4（versionCode 6），设置页正常连接 LSPosed，原有公交选项保留。将选项改为步行后重开设置应用，确认仍为步行，再恢复原有公共交通选项。
+- 暂移且仅暂移本模块自己的定位缓存后，实机 DexKit 冷扫描成功（约 120 ms），缓存重建，模块正常加载；普通路线入口显示公共交通及公交功能，扫描后高德继续正常运行。重开高德确认命中缓存；验证用旧缓存副本已删除。
+- 未执行真实云端备份、换机传输及 Android 17 测试，未重复完整目的地查询和全部路线回归。截图、界面树及设备信息保留在仓库外临时目录。
+- 产物：`dist/AmapRouteDefault-0.2.4-release.apk`；混淆映射：`dist/AmapRouteDefault-0.2.4-mapping.txt`。
