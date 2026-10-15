@@ -61,3 +61,4 @@
 - 使用空签名属性模拟无 Secrets 的 CI，`assembleDebug assembleRelease testDebugUnitTest lintDebug lintRelease` 通过；真实 Debug 和 unsigned R8 Release APK 校验通过。Debug 约 3.87 MB、unsigned Release 为 510,039 字节。
 - 已有 0.2.2 正式签名 APK 通过发布校验脚本；该脚本确认 arm64-only、包名/版本、API 102 作用域、实际保留的入口类和签名证书。
 - 本地测试不等于 GitHub Secrets 权限验证或真实公开发版；Release 提供两项 publish 均关闭的签名构建模式，维护者可在 Actions 中验证配置。
+- 首次 GitHub CI 的编译、Java 测试、Lint 和工作流检查通过；APK 校验暴露出 runner 预装新版 apksigner 的 signer 输出格式差异。固定使用明确安装的 Build Tools 36.0.0，并兼容编号/SDK 范围两种格式，增加来源戳排除、多证书拒绝和工具选择回归测试后，发布工具测试共 12 项通过。

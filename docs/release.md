@@ -60,3 +60,5 @@ python3 scripts/release_tools.py verify-apk app/build/outputs/apk/release/app-re
 ```
 
 最后一项需要配置 `ANDROID_HOME` 和本地 release 签名。没有签名时，校验 `app-release-unsigned.apk` 并使用 `--variant unsigned`。APK 检查包括包名、版本、debuggable、arm64 原生库、API 102 元数据、作用域和 R8 后实际存在的模块入口类；正式 APK 还会校验签名。构建检查不能代替设备上的模块加载、DexKit 冷扫描和路线行为验证。
+
+CI 明确安装并使用 Build Tools 36.0.0，不随 runner 预装的更高版本自动切换；本地可通过 `ANDROID_BUILD_TOOLS_VERSION` 选择其他已安装版本。签名解析兼容旧版 signer 编号和新版 SDK 范围格式，排除 Source Stamp 与公钥摘要；存在多个不同签名证书时拒绝发布。

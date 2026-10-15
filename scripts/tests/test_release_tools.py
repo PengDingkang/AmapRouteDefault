@@ -109,6 +109,31 @@ class ReleaseToolsTest(unittest.TestCase):
              patch.dict(os.environ, {"RELEASE_CERT_SHA256": "b" * 64}), self.assertRaises(ValueError):
             release.verify_apk(apk, "release", version)
 
+    def test_old_and_new_certificate_formats(self):
+        digest = "a" * 64
+        for signer in ["Signer #1", "Signer (minSdkVersion=28, maxSdkVersion=2147483647)"]:
+            output = f"{signer} certificate SHA-256 digest: {digest}\n"
+            output += "Source Stamp Signer certificate SHA-256 digest: " + "b" * 64 + "\n"
+            output += f"{signer} public key SHA-256 digest: " + "c" * 64 + "\n"
+            with self.subTest(signer=signer):
+                self.assertEqual(release.parse_certificate(output), digest)
+                self.assertEqual(release.parse_certificate(output + output), digest)
+
+    def test_rejects_missing_or_ambiguous_signing_certificates(self):
+        for output in ["no certificate", "Signer #1 certificate SHA-256 digest: 1234",
+                       "Signer #1 certificate SHA-256 digest: " + "a" * 64 + "\n"
+                       "Signer #2 certificate SHA-256 digest: " + "b" * 64]:
+            with self.subTest(output=output), self.assertRaises(ValueError):
+                release.parse_certificate(output)
+
+    def test_uses_installed_ci_build_tools_instead_of_newest_preinstalled(self):
+        for version in ["36.0.0", "38.0.0"]:
+            directory = self.root / "build-tools" / version
+            directory.mkdir(parents=True)
+            (directory / "apksigner").write_text("fixture")
+        with patch.dict(os.environ, {"ANDROID_HOME": str(self.root), "ANDROID_BUILD_TOOLS_VERSION": "36.0.0"}):
+            self.assertEqual(release.sdk_tool("apksigner"), str(self.root / "build-tools/36.0.0/apksigner"))
+
 
 class XposedSyncTest(unittest.TestCase):
     def test_empty_repo_idempotence_and_preserving_unrelated_files(self):

@@ -125,10 +125,21 @@ def sdk_tool(name):
     sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
     if not sdk:
         raise ValueError("ANDROID_HOME must identify the Android SDK")
-    tools = [path for path in (Path(sdk) / "build-tools").glob("*/" + name) if path.is_file()]
-    if not tools:
+    version = os.environ.get("ANDROID_BUILD_TOOLS_VERSION", "36.0.0")
+    tool = Path(sdk) / "build-tools" / version / name
+    if not tool.is_file():
         raise ValueError(f"Android SDK tool missing: {name}")
-    return str(max(tools, key=lambda path: tuple(int(n) for n in re.findall(r"[0-9]+", path.parent.name))))
+    return str(tool)
+
+
+def parse_certificate(text):
+    # New apksigner versions identify v3 signers by SDK range instead of "#1".
+    # Source Stamp Signer and public-key digests are not APK signing certificates.
+    certificates = {value.lower() for value in re.findall(
+        r"^Signer[^\r\n]* certificate SHA-256 digest: ([0-9a-fA-F]{64})[ \t\r]*$", text, re.M)}
+    if len(certificates) != 1:
+        raise ValueError(f"Expected one unique APK signing certificate, found {len(certificates)}")
+    return certificates.pop()
 
 
 def parse_badging(text, version, variant):
@@ -147,10 +158,7 @@ def verify_apk(apk, variant, version):
     if variant != "unsigned":
         result = subprocess.run([sdk_tool("apksigner"), "verify", "--print-certs", str(apk)],
                                 check=True, capture_output=True, text=True)
-        match = re.search(r"Signer #1 certificate SHA-256 digest: ([0-9a-fA-F]+)", result.stdout)
-        if not match:
-            raise ValueError("Missing APK signing certificate")
-        certificate = match[1].lower()
+        certificate = parse_certificate(result.stdout)
         expected = os.environ.get("RELEASE_CERT_SHA256", "").replace(":", "").strip().lower()
         if variant == "release" and expected and certificate != expected:
             raise ValueError("Release signing certificate does not match RELEASE_CERT_SHA256")
