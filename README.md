@@ -78,7 +78,7 @@ AI Agent 的改动仍需在自己的设备上验证。如果适配具有通用�
 ANDROID_HOME=/path/to/android-sdk JAVA_HOME=/path/to/jdk-21 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-输出：`app/build/outputs/apk/debug/app-debug.apk`。Gradle Wrapper 来自 Gradle 9.3.1 的标准发行包；Xposed API 仅为编译依赖，Service 库打包在设置应用中。
+输出：`app/build/outputs/apk/debug/app-debug.apk`。Gradle Wrapper 使用 Gradle 9.8.1 并校验官方发行包 SHA-256；Xposed API 仅为编译依赖，Service 库打包在设置应用中。
 
 构建 release 时，在未跟踪的 `local.properties` 中配置 `releaseStoreFile`、`releaseStorePassword`、`releaseKeyAlias`、`releaseKeyPassword`，或使用对应的环境变量 `RELEASE_STORE_FILE`、`RELEASE_STORE_PASSWORD`、`RELEASE_KEY_ALIAS`、`RELEASE_KEY_PASSWORD`。签名文件路径相对于项目根目录，也支持绝对路径。不要提交签名文件和密码。
 

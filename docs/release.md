@@ -6,6 +6,8 @@
 
 `CI` 工作流在 main 代码推送、Pull Request 和手动运行时触发，纯 Markdown 变更跳过自动构建。流程包括工作流检查、发布工具测试、Debug/Release 构建、Java 单元测试、两种构建的 Lint，以及 APK 元数据、ABI 和 Xposed 入口检查。
 
+CI 和 Release 固定使用 `ubuntu-24.04`，避免 `ubuntu-latest` 的系统版本迁移自动改变构建环境。Gradle 版本由仓库 Wrapper 固定，升级时同时更新 Wrapper 文件及发行包 SHA-256，并验证 Debug/Release 构建。
+
 CI 不读取签名 Secrets，也不发布 GitHub Release。下载的 artifact 包含 Debug APK、**不可直接安装的 unsigned Release APK** 和该 Release 的 R8 mapping；测试与 Lint 报告单独保存 14 天。Debug 与 Release 使用同一包名，调试签名与正式签名不同，不能直接互相覆盖安装。
 
 ## GitHub 配置

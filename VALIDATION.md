@@ -76,3 +76,15 @@
 - 测试后已恢复设备原有 `auto` 深浅色模式。截图、界面树和窗口状态仅保存在仓库外临时目录。
 - 本次仅修改设置页主题资源，未修改路线 Hook、定位规则及设置存储；未重复 DexKit 冷扫描和完整路线回归。其他 Android 版本及更换壁纸后的配色变化未实机验证。
 - 产物：`dist/AmapRouteDefault-0.2.3-release.apk`；混淆映射：`dist/AmapRouteDefault-0.2.3-mapping.txt`。
+
+
+## CI 注解维护
+
+2026-10-16，检查 GitHub Actions 运行 `38770049396` 的三条 notice：两个 job 的 `ubuntu-latest` 迁移提醒，以及 Gradle 9.3.1 过时提醒。
+
+- CI 两个 job 及手动 Release 均固定为 `ubuntu-24.04`，继续使用已验证的系统版本。
+- 使用官方 Wrapper 任务升级至 Gradle 9.8.1，同步更新启动脚本、Wrapper JAR 和发行包 SHA-256；JAR 指纹与官方公布值一致。
+- 新 Wrapper 下模拟无签名 Secrets 的 CI：`assembleDebug assembleRelease testDebugUnitTest lintDebug lintRelease` 通过；7 个 Java 测试通过，两种构建的 Lint 均为 0 错误、4 个既有建议。
+- Debug 和 unsigned Release 均通过 APK 元数据、ABI、Xposed 入口及对应签名状态校验；12 项发布工具测试、ShellCheck、actionlint 和 `git diff --check` 通过。
+- `--warning-mode all` 确认现有 AGP 9.1.1 内部仍使用两个已弃用的 Gradle API；这是后续 Gradle 10/11 的迁移事项，本次不屏蔽这些日志。当前 Gradle 9.8.1 构建正常。
+- 本次仅调整构建环境，应用版本保持 0.2.3 / 5，未重新安装模块或改变设备设置。
