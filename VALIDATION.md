@@ -62,3 +62,17 @@
 - 已有 0.2.2 正式签名 APK 通过发布校验脚本；该脚本确认 arm64-only、包名/版本、API 102 作用域、实际保留的入口类和签名证书。
 - 本地测试不等于 GitHub Secrets 权限验证或真实公开发版；Release 提供两项 publish 均关闭的签名构建模式，维护者可在 Actions 中验证配置。
 - 首次 GitHub CI 的编译、Java 测试、Lint 和工作流检查通过；APK 校验暴露出 runner 预装新版 apksigner 的 signer 输出格式差异。固定使用明确安装的 Build Tools 36.0.0，并兼容编号/SDK 范围两种格式，增加来源戳排除、多证书拒绝和工具选择回归测试后，发布工具测试共 12 项通过。
+
+
+## 0.2.3 设置页自适应主题
+
+2026-10-16，沿用上述 Android 16 / LSPosed IT 2.1.1-it (7847) 实机环境。
+
+- 设置页使用原生 Material 深浅色主题和 `values-night` 资源，背景及单选按钮引用 Android 14 起提供的系统动态颜色；未增加依赖。
+- `assembleRelease testDebugUnitTest lintRelease` 通过，7 个测试通过，Lint 0 错误、4 个既有建议。Release APK 通过包名、版本、arm64-only、Xposed 入口及签名校验，与 0.2.2 使用相同证书。
+- 签名 APK 为 514,551 字节，比 0.2.2 增加 416 字节；保留 R8 压缩和 arm64-only 打包。
+- 已覆盖安装 0.2.3（versionCode 5）。设置页正常连接 LSPosed，原有“公共交通”选项保留且可用。
+- 页面保持打开时分别切换系统浅色、深色，确认 Activity 自动重建，背景、文字和单选按钮同步变化；截图及窗口状态确认浅色使用深色系统栏图标，深色使用浅色图标。
+- 测试后已恢复设备原有 `auto` 深浅色模式。截图、界面树和窗口状态仅保存在仓库外临时目录。
+- 本次仅修改设置页主题资源，未修改路线 Hook、定位规则及设置存储；未重复 DexKit 冷扫描和完整路线回归。其他 Android 版本及更换壁纸后的配色变化未实机验证。
+- 产物：`dist/AmapRouteDefault-0.2.3-release.apk`；混淆映射：`dist/AmapRouteDefault-0.2.3-mapping.txt`。

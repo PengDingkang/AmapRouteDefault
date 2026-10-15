@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:name=".ModuleApplication" android:label="高德默认路线" android:icon="@drawable/ic_route"
-        android:description="@string/module_description" android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:description="@string/module_description" android:theme="@style/Theme.AmapRouteDefault"
         android:allowBackup="false" android:supportsRtl="true">
         <activity android:name=".SettingsActivity" android:exported="true">
             <intent-filter>

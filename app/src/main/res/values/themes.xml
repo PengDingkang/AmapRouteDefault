@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.AmapRouteDefault" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorBackground">@android:color/system_surface_light</item>
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
+        <item name="android:colorAccent">@android:color/system_primary_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

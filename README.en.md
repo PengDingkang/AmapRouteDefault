@@ -21,6 +21,8 @@ Other Amap versions use best-effort DexKit feature matching. There must be exact
 
 The preference applies when opening ordinary route planning without an explicit mode. Manual changes inside the route page and dedicated driving/cycling entries retain their choices. New preferences apply to subsequent route planning without restarting the device.
 
+The settings screen follows the system's light/dark mode and uses system dynamic colors for its background and radio buttons.
+
 ## Adapting an incompatible version
 
 Fork this project and use an AI Agent to adapt it to **your own device and installed APK**. Ask the agent to read [AGENTS.md](AGENTS.md), inspect your actual Amap installation and relevant logs, update the matching rules, and verify the resulting APK on your authorized device. The Chinese README includes a prompt template. Share only sanitized evidence; do not upload Amap APKs or personal location history.
