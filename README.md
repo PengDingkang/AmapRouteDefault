@@ -74,3 +74,7 @@ ANDROID_HOME=/path/to/android-sdk JAVA_HOME=/path/to/jdk-21 ./gradlew assembleDe
 ```
 
 输出：`app/build/outputs/apk/debug/app-debug.apk`。Gradle Wrapper 来自 Gradle 9.3.1 的标准发行包；Xposed API 仅为编译依赖，Service 库打包在设置应用中。
+
+## 许可证
+
+本项目原创代码以 [Apache License 2.0](LICENSE) 发布。第三方依赖遵循各自的许可证。
