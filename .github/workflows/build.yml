@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**/*.md"]
+  pull_request:
+    paths-ignore: ["**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Validate workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+      - name: Test release tooling
+        run: python3 -m unittest discover -s scripts/tests -v
+
+  build:
+    needs: workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-37.0 build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Read version
+        id: version
+        run: python3 scripts/release_tools.py version --github-output "$GITHUB_OUTPUT"
+      - name: Build and test debug and optimized release
+        run: ./gradlew :app:assembleDebug :app:assembleRelease :app:testDebugUnitTest :app:lintDebug :app:lintRelease --no-daemon
+      - name: Verify APK metadata and packaging
+        run: |
+          python3 scripts/release_tools.py verify-apk app/build/outputs/apk/debug/app-debug.apk --variant debug
+          python3 scripts/release_tools.py verify-apk app/build/outputs/apk/release/app-release-unsigned.apk --variant unsigned
+      - name: Prepare artifacts
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/AmapRouteDefault-${VERSION_NAME}-debug.apk"
+          cp app/build/outputs/apk/release/app-release-unsigned.apk "dist/AmapRouteDefault-${VERSION_NAME}-unsigned.apk"
+          cp app/build/outputs/mapping/release/mapping.txt "dist/AmapRouteDefault-${VERSION_NAME}-mapping.txt"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: AmapRouteDefault-${{ steps.version.outputs.version_name }}-ci
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: AmapRouteDefault-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14

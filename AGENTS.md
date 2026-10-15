@@ -15,6 +15,8 @@
 
 开发环境：JDK 21、Android SDK 37、Gradle Wrapper；应用源码使用 Java 17。当前运行要求为 Android 14+、现代 Xposed API 102。依赖与版本以 Gradle 文件为准。
 
+项目仅支持 arm64-v8a，不需要为其他 ABI 增加构建或验证。Release 启用 R8 和资源压缩；修改入口或依赖时检查 `app/proguard-rules.pro` 及依赖的 consumer rules，保留必要的 Xposed/JNI 动态入口，避免用全包 `-keep` 关闭实际压缩。发布时留存对应版本的 `mapping.txt`。验证压缩包时必须实际测试模块加载和一次 DexKit 冷扫描，单元测试或缓存命中不能代替 JNI 验证。
+
 ## 适配时必须保持的行为
 
 1. 默认方式只作用于未明确指定出行方式的普通路线规划。保留用户在页内手动切换、专门的驾车/骑行入口，以及调用方明确指定的方式。
@@ -67,6 +69,10 @@
 根据变更风险选择相关回归项；修改定位、结构或 Hook 行为时必须做对应验证。无法连接目标设备时完成可做的分析、构建和测试，并明确标记实机验证缺失。
 
 ## 交付与兼容性记录
+
+- 版本的唯一来源为 `gradle.properties` 的 `appVersionName` 和 `appVersionCode`，Gradle、CI 和发版校验均读取此处。发版前更新对应 `CHANGELOG.md` 条目，参考 `docs/release.md`。
+- 修改工作流或发布工具时运行 `python3 -m unittest discover -s scripts/tests -v`、`shellcheck scripts/sync_xposed.sh` 和 `actionlint`。普通 CI 不接触签名密钥；Release 仅手动运行。实现发布功能不等于获得立即创建公开发行版的授权。
+- LSPosed 仓库只同步 README、SCOPE、SOURCE_URL、SUMMARY 及正式 APK；保留其他已有文件，不能推送源码、mapping 或本地分析材料。维持精确版本校验和单独补发两个发布目标的能力。
 
 - 在 `VALIDATION.md` 记录实际安装包版本、必要的包指纹、设备/框架版本、已执行检查、结果和未验证项；新增证据不能覆盖或改写历史测试结论。
 - 测试夹具重命名只能证明相应结构可处理，不能当作另一个真实高德版本的实测。不要把单个设备的结果扩大为全部版本或全部渠道兼容。

@@ -1,5 +1,7 @@
 # 高德默认路线
 
+[English](README.en.md)
+
 为高德地图添加默认出行方式选项的 LSPosed 模块。模块设置中可选公共交通、步行、骑行、驾车，或关闭覆盖、跟随高德原有行为。
 
 ## 兼容环境
@@ -7,6 +9,7 @@
 - 使用 **DexKit 2.3.0** 自动定位，尝试兼容不同高德版本；无匹配或匹配不唯一时不挂接。
 - 已实测高德 **15.10.1.2063**；其他版本属于尽力适配，尚未逐版实测。
 - Android 14 及以上，支持 **现代 Xposed API 102** 的 LSPosed。
+- 仅支持 **arm64-v8a** 设备，安装包不包含其他架构的原生库。
 - 实机环境：Android 16 / LSPosed IT 2.1.1-it (7847)。
 
 ## 使用
@@ -74,6 +77,22 @@ ANDROID_HOME=/path/to/android-sdk JAVA_HOME=/path/to/jdk-21 ./gradlew assembleDe
 ```
 
 输出：`app/build/outputs/apk/debug/app-debug.apk`。Gradle Wrapper 来自 Gradle 9.3.1 的标准发行包；Xposed API 仅为编译依赖，Service 库打包在设置应用中。
+
+构建 release 时，在未跟踪的 `local.properties` 中配置 `releaseStoreFile`、`releaseStorePassword`、`releaseKeyAlias`、`releaseKeyPassword`，或使用对应的环境变量 `RELEASE_STORE_FILE`、`RELEASE_STORE_PASSWORD`、`RELEASE_KEY_ALIAS`、`RELEASE_KEY_PASSWORD`。签名文件路径相对于项目根目录，也支持绝对路径。不要提交签名文件和密码。
+
+```sh
+./gradlew assembleRelease testDebugUnitTest lintRelease
+```
+
+配置完整时，签名后的输出为 `app/build/outputs/apk/release/app-release.apk`；未配置签名时仅生成 unsigned APK，不能直接安装。首次从 debug 签名切换到 release 签名可能需要重新安装模块并恢复设置，后续应使用同一 release 密钥升级。
+
+Release 默认启用 R8 代码压缩、优化、混淆和资源压缩；所有构建仅打包 arm64-v8a 原生库。`app/proguard-rules.pro` 保留由 LSPosed 动态加载的模块入口，DexKit 的 JNI 入口使用依赖自带的 consumer rules。发布时应同时留存 `app/build/outputs/mapping/release/mapping.txt`，以便还原混淆后的崩溃堆栈。
+
+## CI 与自动发版
+
+版本统一在 `gradle.properties` 中设置。GitHub Actions 的 **CI** 会构建 Debug 和 R8 Release、运行测试与 Lint，并校验 APK 包名、版本、arm64 库和 Xposed 入口；构建产物及检查报告可从 Actions 下载。CI 的 Release APK 未签名，日常安装请使用正式发布的签名 APK。
+
+**Release** 工作流支持手动构建签名包，可分别选择发布到源码仓库和 `Xposed-Modules-Repo/org.hdhmc.amaproutedefault`。源码仓库留存 APK、R8 mapping 和校验和；LSPosed 仓库同步模块元数据及同一份 APK。需要的 Secrets、输入参数和补发方法见 [发版说明](docs/release.md)。
 
 ## 许可证
 
