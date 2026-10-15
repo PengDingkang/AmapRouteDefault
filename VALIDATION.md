@@ -104,3 +104,14 @@
 - 暂移且仅暂移本模块自己的定位缓存后，实机 DexKit 冷扫描成功（约 120 ms），缓存重建，模块正常加载；普通路线入口显示公共交通及公交功能，扫描后高德继续正常运行。重开高德确认命中缓存；验证用旧缓存副本已删除。
 - 未执行真实云端备份、换机传输及 Android 17 测试，未重复完整目的地查询和全部路线回归。截图、界面树及设备信息保留在仓库外临时目录。
 - 产物：`dist/AmapRouteDefault-0.2.4-release.apk`；混淆映射：`dist/AmapRouteDefault-0.2.4-mapping.txt`。
+
+
+## Release 安装令牌预检修复
+
+2026-10-16，检查失败运行 `38773913403` / job `116556517461`。
+
+- 版本和 12 项发布工具测试已通过，失败发生在 `Check source publication target`，签名、编译及两处发布均未执行。日志的 `GITHUB_TOKEN Permissions` 明确为 `Contents: write`；旧脚本的 `.permissions.push | grep -qx true` 却返回失败，属于使用用户级仓库字段推断安装令牌权限的误拒绝。
+- 源码预检、Xposed 预检和元数据同步统一使用 `scripts/check_repository.sh`，通过只读 API 验证可访问性，不再依赖 push 字段。保留 HTTP 错误、重复 tag 和后续真实写入失败检查；访问预检成功不代表已验证 Contents 写权限。
+- 新增不返回 permissions / 返回 push=false 仍可读取仓库、401/403/404/500 明确失败、缺少令牌或仓库格式错误的回归测试；本地 bare 仓库同步同时验证 API 拒绝时不改变远端，以及空仓库、重复同步和已有文件保留。
+- 15 项 Python 测试、两份 Shell 脚本的 ShellCheck、actionlint 和 `git diff --check` 通过。普通 CI 新增使用真实只读 `GITHUB_TOKEN` 的访问检查，不执行公开发布。
+- 本次仅修复发布流程，应用版本保持 0.2.4 / 6，未重新安装模块。真实签名与公开发布仍需在新提交上重新手动运行 Release；旧运行的 Re-run jobs 使用旧提交。

@@ -12,6 +12,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import release_tools as release
 
 
+GH_FIXTURE = '''#!/usr/bin/env python3
+import json
+import os
+import sys
+
+args = sys.argv[1:]
+if args[0] != "api":
+    sys.exit(0)
+status = os.environ.get("GH_FIXTURE_STATUS", "200")
+if status != "200":
+    print("gh: fixture API failure (HTTP " + status + ")", file=sys.stderr)
+    sys.exit(1)
+data = json.loads(os.environ.get("GH_FIXTURE_REPOSITORY", '{"full_name":"fixture/module"}'))
+if "--jq" in args:
+    print(json.dumps(data.get("permissions", {}).get("push")))
+elif "--silent" not in args:
+    print(json.dumps(data))
+'''
+
+
 def dex_fixture(descriptor, defined=True):
     encoded = descriptor.encode()
     data = bytearray(152)
@@ -135,6 +155,45 @@ class ReleaseToolsTest(unittest.TestCase):
             self.assertEqual(release.sdk_tool("apksigner"), str(self.root / "build-tools/36.0.0/apksigner"))
 
 
+class RepositoryAccessTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        root = Path(self.temp.name)
+        gh = root / "gh"
+        gh.write_text(GH_FIXTURE)
+        gh.chmod(0o755)
+        self.env = dict(os.environ, GH_TOKEN="test-fixture", GH_FIXTURE_STATUS="200",
+                        PATH=str(root) + os.pathsep + os.environ["PATH"])
+        self.script = Path(__file__).resolve().parents[1] / "check_repository.sh"
+
+    def check(self, repository="fixture/module", **overrides):
+        return subprocess.run(["bash", str(self.script), repository],
+                              env=dict(self.env, **overrides), capture_output=True, text=True)
+
+    def test_accepts_accessible_repo_without_user_push_permissions(self):
+        for response in ['{"full_name":"fixture/module"}',
+                         '{"full_name":"fixture/module","permissions":{"push":false}}']:
+            with self.subTest(response=response):
+                result = self.check(GH_FIXTURE_REPOSITORY=response)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("Repository accessible: fixture/module", result.stdout)
+
+    def test_api_failures_are_not_ignored(self):
+        for status in ("401", "403", "404", "500"):
+            with self.subTest(status=status):
+                result = self.check(GH_FIXTURE_STATUS=status)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("HTTP " + status, result.stderr)
+                self.assertIn("Cannot access fixture/module", result.stderr)
+
+    def test_requires_token_and_valid_repository(self):
+        self.assertNotEqual(self.check(GH_TOKEN="").returncode, 0)
+        for repository in ("owner", "owner/repo/extra", "owner/repo?query", "owner/repo\n"):
+            with self.subTest(repository=repository):
+                self.assertNotEqual(self.check(repository).returncode, 0)
+
+
 class XposedSyncTest(unittest.TestCase):
     def test_empty_repo_idempotence_and_preserving_unrelated_files(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -148,7 +207,7 @@ class XposedSyncTest(unittest.TestCase):
             binary = root / "bin"
             binary.mkdir()
             gh = binary / "gh"
-            gh.write_text('#!/usr/bin/env bash\nset -eu\nif [[ "$1" == api ]]; then echo true; fi\n')
+            gh.write_text(GH_FIXTURE)
             gh.chmod(0o755)
             config = root / "gitconfig"
             env = dict(os.environ, GH_TOKEN="test-fixture", XPOSED_REPOSITORY="fixture/module",
@@ -168,6 +227,10 @@ class XposedSyncTest(unittest.TestCase):
                 return git("--git-dir", str(bare), "rev-parse", "main")
 
             first = sync()
+            denied = subprocess.run(["bash", str(script)], env=dict(env, GH_FIXTURE_STATUS="403"),
+                                    capture_output=True, text=True)
+            self.assertNotEqual(denied.returncode, 0)
+            self.assertEqual(git("--git-dir", str(bare), "rev-parse", "main"), first)
             self.assertEqual(first, sync())
             self.assertEqual(set(git("--git-dir", str(bare), "ls-tree", "--name-only", "main").splitlines()), set(names))
             clone = root / "clone"

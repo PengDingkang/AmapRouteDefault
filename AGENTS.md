@@ -71,7 +71,7 @@
 ## 交付与兼容性记录
 
 - 版本的唯一来源为 `gradle.properties` 的 `appVersionName` 和 `appVersionCode`，Gradle、CI 和发版校验均读取此处。发版前更新对应 `CHANGELOG.md` 条目，参考 `docs/release.md`。
-- 修改工作流或发布工具时运行 `python3 -m unittest discover -s scripts/tests -v`、`shellcheck scripts/sync_xposed.sh` 和 `actionlint`。普通 CI 不接触签名密钥；Release 仅手动运行。实现发布功能不等于获得立即创建公开发行版的授权。
+- 修改工作流或发布工具时运行 `python3 -m unittest discover -s scripts/tests -v`、`shellcheck scripts/*.sh` 和 `actionlint`。普通 CI 不接触签名密钥；Release 仅手动运行。实现发布功能不等于获得立即创建公开发行版的授权。
 - LSPosed 仓库只同步 README、SCOPE、SOURCE_URL、SUMMARY 及正式 APK；保留其他已有文件，不能推送源码、mapping 或本地分析材料。维持精确版本校验和单独补发两个发布目标的能力。
 
 - 在 `VALIDATION.md` 记录实际安装包版本、必要的包指纹、设备/框架版本、已执行检查、结果和未验证项；新增证据不能覆盖或改写历史测试结论。

@@ -53,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.source_tag }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY" --jq '.permissions.push' | grep -qx true
+          bash scripts/check_repository.sh "$GITHUB_REPOSITORY"
           git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY.git" > "$RUNNER_TEMP/source-tags"
           if awk -v ref="refs/tags/$TAG" '$2 == ref { found=1 } END { exit !found }' "$RUNNER_TEMP/source-tags"; then
             echo "Source tag already exists: $TAG"
@@ -66,7 +66,7 @@ jobs:
           TAG: ${{ steps.version.outputs.xposed_tag }}
         run: |
           test -n "$GH_TOKEN"
-          gh api "repos/$XPOSED_REPOSITORY" --jq '.permissions.push' | grep -qx true
+          bash scripts/check_repository.sh "$XPOSED_REPOSITORY"
           git ls-remote --tags "https://github.com/$XPOSED_REPOSITORY.git" > "$RUNNER_TEMP/xposed-tags"
           if awk -v ref="refs/tags/$TAG" '$2 == ref { found=1 } END { exit !found }' "$RUNNER_TEMP/xposed-tags"; then
             echo "Xposed tag already exists: $TAG"

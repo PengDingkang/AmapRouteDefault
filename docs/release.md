@@ -24,6 +24,8 @@ CI 不读取签名 Secrets，也不发布 GitHub Release。下载的 artifact �
 
 源码仓库发布使用工作流自带的 `GITHUB_TOKEN`，工作流仅申请 Contents 写权限。签名文件在 runner 临时目录还原，并在结束时清理；不要提交 keystore、`local.properties` 或密码。后续升级必须使用相同正式签名。
 
+仓库预检只通过只读 API 验证可访问性，不能用仓库响应中的 `.permissions.push` 推断令牌的 Contents 写权限。`GITHUB_TOKEN` 属于安装令牌，仓库中的用户级 push 字段可能缺失或不能代表该令牌的 API 权限。真实发布和 Git 推送仍由 GitHub 校验写权限；遇到 HTTP 403 时检查对应令牌的 Contents:write、仓库授权范围和组织策略。普通 CI 会用只读 `GITHUB_TOKEN` 执行相同的访问检查。
+
 可选 Repository Variables：
 
 - `XPOSED_REPOSITORY`：默认 `Xposed-Modules-Repo/org.hdhmc.amaproutedefault`。该仓库需要已经存在且 Token 有写权限；工作流可初始化空仓库的 main 分支，不负责申请收录或创建组织仓库。
@@ -42,6 +44,8 @@ CI 不读取签名 Secrets，也不发布 GitHub Release。下载的 artifact �
 
 两项 publish 均关闭时，仅构建、校验和上传签名产物，可用于验证 GitHub 签名配置。Release 工作流不会因普通推送或 CI 成功而自动发布。
 
+工作流修复推送后，应从 main 重新选择 **Run workflow**；旧运行的 **Re-run jobs** 使用原来的提交，无法加载新修复。
+
 发版前更新版本号和 `CHANGELOG.md` 的对应 `## [版本]` 条目，完成需要的实机验证并推送到 main。输入不匹配、更新记录缺失/为空、已有相同 tag、签名失败或 APK 校验失败时，工作流终止。不要覆盖已有发行版的 tag；两处仓库发布并非事务，部分成功时关闭已成功的目标，仅重试另一处。
 
 构建和校验通过后，签名产物先作为 Actions artifact 保存 30 天。发布时：
@@ -54,7 +58,7 @@ CI 不读取签名 Secrets，也不发布 GitHub Release。下载的 artifact �
 
 ```sh
 python3 -m unittest discover -s scripts/tests -v
-shellcheck scripts/sync_xposed.sh
+shellcheck scripts/check_repository.sh scripts/sync_xposed.sh
 actionlint
 ./gradlew assembleDebug assembleRelease testDebugUnitTest lintDebug lintRelease
 python3 scripts/release_tools.py version --expected 0.2.2

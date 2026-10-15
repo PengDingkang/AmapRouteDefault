@@ -28,6 +28,10 @@ jobs:
           args: -color
       - name: Test release tooling
         run: python3 -m unittest discover -s scripts/tests -v
+      - name: Check repository access with GITHUB_TOKEN
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/check_repository.sh "$GITHUB_REPOSITORY"
 
   build:
     needs: workflows

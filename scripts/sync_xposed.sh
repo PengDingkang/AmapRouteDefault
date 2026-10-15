@@ -10,7 +10,7 @@ set -euo pipefail
 
 files=(README.md README.en.md SCOPE SOURCE_URL SUMMARY)
 for file in "${files[@]}"; do test -s "$METADATA_DIR/$file"; done
-gh api "repos/$XPOSED_REPOSITORY" --jq '.permissions.push' | grep -qx true
+bash "$(dirname "$0")/check_repository.sh" "$XPOSED_REPOSITORY"
 gh auth setup-git --hostname github.com
 export GIT_TERMINAL_PROMPT=0
 
